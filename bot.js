@@ -7,16 +7,12 @@ const GOOGLE_SHEETS_URL = 'https://script.google.com/macros/s/AKfycbz_vByViBFDdy
 const ROLES = {
   BAN: ['1482818344661811291'],
   KICK: ['1482818344661811291'],
-  WARN: ['1482818344661811291'],
-  UNWARN: ['1482818344661811291'],
   NAMETAG: ['1482818344661811291']
 };
 
 const ALL_ALLOWED_ROLES = [
   ...ROLES.BAN,
   ...ROLES.KICK,
-  ...ROLES.WARN,
-  ...ROLES.UNWARN,
   ...ROLES.NAMETAG
 ];
 
@@ -29,7 +25,8 @@ const client = new Client({
   intents: [
     GatewayIntentBits.Guilds,
     GatewayIntentBits.MessageContent,
-    GatewayIntentBits.GuildMessages
+    GatewayIntentBits.GuildMessages,
+    GatewayIntentBits.GuildMembers
   ]
 });
 
@@ -70,9 +67,8 @@ client.on('messageCreate', async (message) => {
 Команды бота:
 !nametag <ник> <текст> [fx] - выдать неймтег
 !ban <ник> [причина] - забанить игрока
+!unban <ник> - разбанить игрока
 !kick <ник> [причина] - кикнуть игрока
-!warn <ник> [причина] - выдать варн
-!unwarn <ник> <название варна или all> - снять варн
 !help - это меню
     `);
   }
@@ -128,6 +124,30 @@ client.on('messageCreate', async (message) => {
     }
   }
   
+  if (cmd === 'unban') {
+    if (!hasPermission(message, 'BAN')) {
+      return message.reply('У тебя нет прав на использование этой команды.');
+    }
+    
+    const player = args[1];
+    
+    if (!player) {
+      return message.reply('Использование: !unban <ник>');
+    }
+    
+    try {
+      await axios.post(GOOGLE_SHEETS_URL, {
+        command: 'unban',
+        player: player,
+        args: player
+      });
+      message.reply(`Разбан отправлен: ${player}`);
+    } catch (err) {
+      console.error('Ошибка:', err.message);
+      message.reply('Ошибка при отправке команды.');
+    }
+  }
+  
   if (cmd === 'kick') {
     if (!hasPermission(message, 'KICK')) {
       return message.reply('У тебя нет прав на использование этой команды.');
@@ -147,56 +167,6 @@ client.on('messageCreate', async (message) => {
         args: reason
       });
       message.reply(`Кик отправлен: ${player} | Причина: ${reason}`);
-    } catch (err) {
-      console.error('Ошибка:', err.message);
-      message.reply('Ошибка при отправке команды.');
-    }
-  }
-  
-  if (cmd === 'warn') {
-    if (!hasPermission(message, 'WARN')) {
-      return message.reply('У тебя нет прав на использование этой команды.');
-    }
-    
-    const player = args[1];
-    const reason = args.slice(2).join(' ') || 'Не указана';
-    
-    if (!player) {
-      return message.reply('Использование: !warn <ник> [причина]');
-    }
-    
-    try {
-      await axios.post(GOOGLE_SHEETS_URL, {
-        command: 'warn',
-        player: player,
-        args: reason
-      });
-      message.reply(`Варн отправлен: ${player} | Причина: ${reason}`);
-    } catch (err) {
-      console.error('Ошибка:', err.message);
-      message.reply('Ошибка при отправке команды.');
-    }
-  }
-  
-  if (cmd === 'unwarn') {
-    if (!hasPermission(message, 'UNWARN')) {
-      return message.reply('У тебя нет прав на использование этой команды.');
-    }
-    
-    const player = args[1];
-    const warnName = args[2] || 'all';
-    
-    if (!player) {
-      return message.reply('Использование: !unwarn <ник> <название варна или all>');
-    }
-    
-    try {
-      await axios.post(GOOGLE_SHEETS_URL, {
-        command: 'unwarn',
-        player: player,
-        args: warnName
-      });
-      message.reply(`Снятие варна отправлено: ${player} | Варн: ${warnName}`);
     } catch (err) {
       console.error('Ошибка:', err.message);
       message.reply('Ошибка при отправке команды.');
