@@ -14,7 +14,7 @@ const ALLOWED_USERS = [
   '1489708163384213665'
 ];
 if (!TOKEN) {
-  console.error('❌ DISCORD_TOKEN не задан! Добавь его в секреты.');
+  console.error('DISCORD_TOKEN не задан! Добавь его в секреты.');
   process.exit(1);
 }
 const client = new Client({
@@ -25,13 +25,13 @@ const client = new Client({
   ]
 });
 client.on('ready', () => {
-  console.log(`✅ Бот запущен как ${client.user.tag}`);
+  console.log(`Бот запущен как ${client.user.tag}`);
 });
 client.on('messageCreate', async (message) => {
   if (message.author.bot) return;
   if (!message.content.startsWith('!')) return;
   if (!ALLOWED_USERS.includes(message.author.id)) {
-    return message.reply('❌ У тебя нет доступа к командам бота.');
+    return message.reply('У тебя нет доступа к командам бота.');
   }
   const args = message.content.slice(1).split(' ');
   const cmd = args[0].toLowerCase();
@@ -40,7 +40,7 @@ client.on('messageCreate', async (message) => {
     const nametag = args[2];
     const fx = args[3] || 'default';
     if (!player || !nametag) {
-      return message.reply('❌ Использование: !nametag <ник> <текст> [fx]');
+      return message.reply('Использование: !nametag <ник> <текст> [fx]');
     }
     try {
       await axios.post(GOOGLE_SHEETS_URL, {
@@ -48,10 +48,10 @@ client.on('messageCreate', async (message) => {
         player: player,
         args: `${nametag} ${fx}`
       });
-      message.reply(`✅ Отправлено! ${player} → ${nametag} (${fx})`);
+      message.reply(`Отправлено! ${player} → ${nametag} (${fx})`);
     } catch (err) {
       console.error('Ошибка при отправке:', err.message);
-      message.reply('❌ Ошибка при отправке команды.');
+      message.reply('Ошибка при отправке команды.');
     }
   }
   if (cmd === 'help') {
